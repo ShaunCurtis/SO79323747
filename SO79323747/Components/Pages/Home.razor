@@ -1,0 +1,48 @@
+﻿@page "/"
+@using System.Timers
+@implements IDisposable
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Counter value is: @currentCount at @DateTime.UtcNow.ToString("HH:mm:ss")
+
+@code {
+    [CascadingParameter] private HttpContext? httpContext { get; set; }
+
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+        Console.WriteLine($"Count incremented: {currentCount}");
+    }
+
+    protected override void OnInitialized()
+    {
+        // If static rendered, do not start the timer
+        if (httpContext is not null)
+            return;
+
+        timer = new Timer();
+        timer.Interval = 1000;
+        timer.Elapsed += OnTimerInterval;
+        timer.AutoReset = true;
+        // Start the timer
+        timer.Enabled = true;
+    }
+
+    private Timer? timer;
+
+    private async void OnTimerInterval(object? sender, ElapsedEventArgs e)
+    {
+        IncrementCount();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}
